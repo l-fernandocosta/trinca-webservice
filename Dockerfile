@@ -1,18 +1,18 @@
-FROM node:18.16.0
+FROM node:18-buster-slim
 
-WORKDIR /usr/app/
+WORKDIR /usr/app
 
 RUN npm install -g pnpm -f
+COPY package*.json  pnpm-lock.yaml /usr/app/
 
-COPY prisma ./prisma/
-COPY package.json ./
 
+RUN apt-get update
+RUN apt-get install -y openssl
 
 RUN pnpm install
-
 COPY . .
 
-RUN pnpm build
+RUN pnpm dlx prisma generate && pnpm build 
 
-EXPOSE 8084
-ENTRYPOINT ["pnpm", "start:prod"]
+EXPOSE 3000
+CMD [ "node", "dist/src/main.js" ]
