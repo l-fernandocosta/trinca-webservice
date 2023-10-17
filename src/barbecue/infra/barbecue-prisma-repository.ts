@@ -34,6 +34,11 @@ export class BarbecuePrismaRepository implements BarbecueRepository {
           gte: input.from,
           lte: input.to,
         },
+        AND: {
+          userId: {
+            not: input.userid,
+          },
+        },
       },
     });
     return bbqs;
@@ -70,12 +75,43 @@ export class BarbecuePrismaRepository implements BarbecueRepository {
     return bbqs;
   }
 
-  create(input: CreateBarbecueInput): Promise<void> {
-    throw new Error('Method not implemented.');
+  async create(input: CreateBarbecueInput): Promise<void> {
+    const user = await this.db.user.findUnique({
+      where: {
+        id: input.userId,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('USER_NOT_FOUND');
+    }
+
+    await this.db.barbecue.create({
+      data: {
+        ...input,
+      },
+    });
   }
 
-  update(input: UpdateBarbecueInput): Promise<void> {
-    throw new Error('Method not implemented.');
+  async update(input: UpdateBarbecueInput, bbqId: string): Promise<void> {
+    const bbq = await this.db.barbecue.findUnique({
+      where: {
+        id: bbqId,
+      },
+    });
+
+    if (!bbq) {
+      throw new NotFoundException('BARBECUE_NOT_FOUND');
+    }
+
+    await this.db.barbecue.update({
+      where: {
+        id: bbq.id,
+      },
+      data: {
+        ...input,
+      },
+    });
   }
 
   async isAvailableToJoin(bbqId: string): Promise<boolean> {

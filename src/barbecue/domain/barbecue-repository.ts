@@ -15,6 +15,6 @@ export abstract class BarbecueRepository {
     contribution: number,
   ): Promise<boolean>;
   abstract create(input: CreateBarbecueInput): Promise<void>;
-  abstract update(input: UpdateBarbecueInput): Promise<void>;
+  abstract update(input: UpdateBarbecueInput, bbqId: string): Promise<void>;
   abstract findBarbecuesByGuest(id: string): Promise<Barbecue[]>;
 }

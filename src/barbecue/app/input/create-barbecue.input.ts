@@ -1,6 +1,6 @@
 export class CreateBarbecueInput {
   title: string;
-  date: Date;
+  date: string;
   hour: string;
   isPublic?: boolean;
   totalPrice: number;

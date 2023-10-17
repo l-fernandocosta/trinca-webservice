@@ -6,10 +6,15 @@ export class BarbecueController {
   constructor(private readonly barbecueService: BarbecueService) {}
 
   @Get()
-  findAll(@Query('from') from?: string, @Query('to') to?: string) {
+  findAll(
+    @Query('userid') userid: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
     return this.barbecueService.findAll({
       to,
       from,
+      userid,
     });
   }
 
