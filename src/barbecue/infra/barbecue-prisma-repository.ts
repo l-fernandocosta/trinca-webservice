@@ -4,7 +4,8 @@ import { FindManyQueryParamsInput } from '@/barbecue/app/input/find-many-query-p
 import { UpdateBarbecueInput } from '@/barbecue/app/input/update-barbecue.input';
 import { BarbecueRepository } from '@/barbecue/domain/barbecue-repository';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Barbecue } from '@prisma/client';
+import { Barbecue, GuestBarbecue } from '@prisma/client';
+import { ConfirmBBQInviteInput } from '../app/input/confirm-bbq-invite.input';
 
 @Injectable()
 export class BarbecuePrismaRepository implements BarbecueRepository {
@@ -21,6 +22,57 @@ export class BarbecuePrismaRepository implements BarbecueRepository {
       },
     });
     return bbqGuest;
+  }
+
+  async invitedBarbecue(id: string): Promise<GuestBarbecue[]> {
+    const user = await this.findUser(id);
+
+    if (!user) {
+      throw new NotFoundException('USER_NOT_FOUND');
+    }
+
+    const bbqs = await this.db.guestBarbecue.findMany({
+      where: {
+        userId: id,
+      },
+      include: {
+        barbecue: {
+          include: { createdBy: true },
+        },
+        user: true,
+      },
+    });
+
+    return bbqs;
+  }
+
+  async confirmBBQInvite(input: ConfirmBBQInviteInput) {
+    const user = await this.findUser(input.userid);
+    if (!user) {
+      throw new NotFoundException('USER_NOT_FOUND');
+    }
+
+    const bbqGuest = await this.db.guestBarbecue.findUnique({
+      where: {
+        id: input.bbqGuestId,
+        AND: {
+          userId: input.userid,
+        },
+      },
+    });
+
+    if (!bbqGuest) {
+      throw new NotFoundException('BARBECUE_GUEST_NOT_FOUND');
+    }
+
+    await this.db.guestBarbecue.update({
+      data: {
+        status: 'CONFIRMED',
+      },
+      where: {
+        id: input.bbqGuestId,
+      },
+    });
   }
 
   async findMany(input: FindManyQueryParamsInput): Promise<Barbecue[]> {
@@ -63,12 +115,15 @@ export class BarbecuePrismaRepository implements BarbecueRepository {
   }
 
   async findByUser(id: string): Promise<Barbecue[]> {
-    const user = await this.db.user.findUnique({ where: { id } });
+    const user = await this.findUser(id);
     if (!user) throw new NotFoundException('USER_NOT_FOUND');
 
     const bbqs = await this.db.barbecue.findMany({
       where: {
         userId: id,
+      },
+      include: {
+        guests: true,
       },
     });
 
@@ -141,5 +196,15 @@ export class BarbecuePrismaRepository implements BarbecueRepository {
     }
 
     return true;
+  }
+
+  private async findUser(id: string) {
+    const user = await this.db.user.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    return user;
   }
 }

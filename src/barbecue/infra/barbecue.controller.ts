@@ -1,5 +1,15 @@
 import { BarbecueService } from '@/barbecue/app/barbecue.service';
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { ConfirmBBQInviteInput } from '@/barbecue/app/input/confirm-bbq-invite.input';
+import { CreateBarbecueInput } from '@/barbecue/app/input/create-barbecue.input';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 
 @Controller('barbecue')
 export class BarbecueController {
@@ -18,8 +28,28 @@ export class BarbecueController {
     });
   }
 
+  @Post()
+  async create(@Body() input: CreateBarbecueInput) {
+    await this.barbecueService.create(input);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.barbecueService.findOne(id);
+  }
+
+  @Get('/user/:id')
+  findByUserId(@Param('id') id: string) {
+    return this.barbecueService.findByUserId(id);
+  }
+
+  @Get('/user/invited/:id')
+  invitedBarbecues(@Param('id') id: string) {
+    return this.barbecueService.invitedBBQS(id);
+  }
+
+  @Patch('/guest/confirm')
+  confirmBBQInvite(@Body() input: ConfirmBBQInviteInput) {
+    return this.barbecueService.confirmBBQInvite(input);
   }
 }
