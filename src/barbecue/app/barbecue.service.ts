@@ -1,15 +1,15 @@
 import { BarbecueRepository } from '@/barbecue/domain/barbecue-repository';
 import { Injectable } from '@nestjs/common';
+import { ConfirmBBQInviteInput } from './input/confirm-bbq-invite.input';
 import { CreateBarbecueInput } from './input/create-barbecue.input';
 import { FindManyQueryParamsInput } from './input/find-many-query-params.input';
-import { UpdateBarbecueInput } from './input/update-barbecue.input';
 
 @Injectable()
 export class BarbecueService {
   constructor(private readonly repository: BarbecueRepository) {}
 
-  create(input: CreateBarbecueInput) {
-    return 'This action adds a new barbecue';
+  async create(input: CreateBarbecueInput) {
+    await this.repository.create(input);
   }
 
   async findAll(query: FindManyQueryParamsInput) {
@@ -20,11 +20,15 @@ export class BarbecueService {
     return await this.repository.find(id);
   }
 
-  update(id: number, input: UpdateBarbecueInput) {
-    return `This action updates a #${id} barbecue`;
+  async findByUserId(id: string) {
+    return await this.repository.findByUser(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} barbecue`;
+  async invitedBBQS(id: string) {
+    return this.repository.invitedBarbecue(id);
+  }
+
+  async confirmBBQInvite(input: ConfirmBBQInviteInput) {
+    return this.repository.confirmBBQInvite(input);
   }
 }
