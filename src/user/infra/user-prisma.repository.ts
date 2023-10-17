@@ -27,8 +27,13 @@ export class UserPrismaRepository implements UserRepositoryInterface {
     const userAlreadyInTheBBQ = await this.db.guestBarbecue.findFirst({
       where: {
         userId: input.id,
+        AND: {
+          barbecueId: input.bbqId,
+        },
       },
     });
+
+    console.log(userAlreadyInTheBBQ, 'User');
 
     if (userAlreadyInTheBBQ) {
       this.logger.error('User alredy joined the bbq. ');
